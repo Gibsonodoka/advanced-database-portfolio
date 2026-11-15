@@ -1,0 +1,19 @@
+                     List of relations
+ Schema |        Name        |       Type        |  Owner   
+--------+--------------------+-------------------+----------
+ cms    | attendance         | table             | postgres
+ cms    | branch             | table             | postgres
+ cms    | church             | table             | postgres
+ cms    | donation           | table             | postgres
+ cms    | donation_by_church | partitioned table | postgres
+ cms    | donation_church_1  | table             | postgres
+ cms    | donation_church_2  | table             | postgres
+ cms    | donation_church_3  | table             | postgres
+ cms    | fund               | table             | postgres
+ cms    | member             | table             | postgres
+ cms    | member_ministry    | table             | postgres
+ cms    | member_profile     | table             | postgres
+ cms    | ministry           | table             | postgres
+ cms    | service            | table             | postgres
+(14 rows)
+

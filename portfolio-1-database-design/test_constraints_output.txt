@@ -1,0 +1,25 @@
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+psql:test_constraints.sql:8: ERROR:  new row for relation "donation" violates check constraint "donation_amount_check"
+DETAIL:  Failing row contains (1, 1, 1, -500.00, CASH, null, 2026-11-15 22:18:20.158572).
+psql:test_constraints.sql:9: ERROR:  insert or update on table "member" violates foreign key constraint "member_branch_id_fkey"
+DETAIL:  Key (branch_id)=(99) is not present in table "branch".
+psql:test_constraints.sql:10: ERROR:  duplicate key value violates unique constraint "member_email_key"
+DETAIL:  Key (email)=(john@example.com) already exists.
+psql:test_constraints.sql:11: ERROR:  new row for relation "member" violates check constraint "member_gender_check"
+DETAIL:  Failing row contains (4, 1, Jane, Doe, null, null, X, null, ACTIVE, 2026-11-15).
+psql:test_constraints.sql:12: ERROR:  new row for relation "donation" violates check constraint "donation_method_check"
+DETAIL:  Failing row contains (2, 1, 1, 1000.00, CHEQUE, null, 2026-11-15 22:18:20.15986).
+ zhim_record_donation 
+----------------------
+                    3
+(1 row)
+
+ name  | balance 
+-------+---------
+ Tithe | 5000.00
+(1 row)
+

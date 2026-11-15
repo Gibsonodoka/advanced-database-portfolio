@@ -1,0 +1,47 @@
+erDiagram
+    CHURCH ||--o{ BRANCH : has
+    CHURCH ||--o{ MINISTRY : runs
+    CHURCH ||--o{ FUND : owns
+    BRANCH ||--o{ MEMBER : has
+    BRANCH ||--o{ SERVICE : holds
+    MEMBER ||--o{ MEMBER_MINISTRY : joins
+    MINISTRY ||--o{ MEMBER_MINISTRY : includes
+    SERVICE ||--o{ ATTENDANCE : records
+    MEMBER ||--o{ ATTENDANCE : attends
+    MEMBER |o--o{ DONATION : gives
+    FUND ||--o{ DONATION : receives
+    CHURCH { int church_id PK
+        varchar name
+        varchar city }
+    BRANCH { int branch_id PK
+        int church_id FK
+        varchar name }
+    MEMBER { int member_id PK
+        int branch_id FK
+        varchar first_name
+        varchar last_name
+        varchar email UK
+        varchar status }
+    MINISTRY { int ministry_id PK
+        int church_id FK
+        varchar name }
+    MEMBER_MINISTRY { int member_id PK
+        int ministry_id PK
+        varchar role }
+    SERVICE { int service_id PK
+        int branch_id FK
+        varchar service_type
+        timestamp service_date }
+    ATTENDANCE { int service_id PK
+        int member_id PK
+        timestamp checked_in_at }
+    FUND { int fund_id PK
+        int church_id FK
+        varchar name
+        numeric balance }
+    DONATION { int donation_id PK
+        int member_id FK
+        int fund_id FK
+        numeric amount
+        varchar method
+        varchar reference UK }
