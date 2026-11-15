@@ -1,0 +1,30 @@
+SET
+psql:partitioning.sql:2: NOTICE:  table "donation_by_church" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+INSERT 0 200003
+ANALYZE
+     partition     | count 
+-------------------+-------
+ donation_church_1 | 66729
+ donation_church_2 | 66431
+ donation_church_3 | 66843
+(3 rows)
+
+                                           QUERY PLAN                                            
+-------------------------------------------------------------------------------------------------
+ Aggregate  (cost=1485.47..1485.48 rows=1 width=32)
+   ->  Seq Scan on donation_church_2 donation_by_church  (cost=0.00..1319.39 rows=66431 width=6)
+         Filter: (church_id = 2)
+(3 rows)
+
+ church_id |      sum      
+-----------+---------------
+         1 | 1671891300.00
+         2 | 1661648700.00
+         3 | 1675659600.00
+(3 rows)
+

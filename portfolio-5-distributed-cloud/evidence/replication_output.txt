@@ -1,0 +1,16 @@
+1. Create replica
+server started
+replica in recovery mode: t
+2. Replication status on primary
+|streaming|async
+3. Write on primary, read on replica
+primary: 1  replica: 1
+4. Write on replica
+ERROR:  cannot execute INSERT in a read-only transaction
+5. Replication lag
+primary: 1  replica: 0
+after resume, replica: 1
+6. Failover: stop primary, promote replica
+server stopped
+server promoted
+new primary accepts writes: 1
