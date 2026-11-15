@@ -1,0 +1,89 @@
+SET
+psql:jsonb.sql:2: NOTICE:  table "member_profile" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+INSERT 0 3
+CREATE INDEX
+1. Full profile of one member
+         jsonb_pretty          
+-------------------------------
+ {                            +
+     "name": {                +
+         "last": "Doe",       +
+         "first": "John"      +
+     },                       +
+     "branch": "Main Branch", +
+     "church": "Grace Chapel",+
+     "giving": {              +
+         "year": 2026,        +
+         "count": 12,         +
+         "total": 150000      +
+     },                       +
+     "status": "ACTIVE",      +
+     "ministries": [          +
+         {                    +
+             "name": "Choir", +
+             "role": "MEMBER" +
+         },                   +
+         {                    +
+             "name": "Youth", +
+             "role": "LEADER" +
+         }                    +
+     ]                        +
+ }
+(1 row)
+
+2. Read nested fields
+ first_name |    church     | total_giving 
+------------+---------------+--------------
+ John       | Grace Chapel  |       150000
+ Mary       | Grace Chapel  |        80000
+ Peter      | Hope Assembly |            0
+(3 rows)
+
+3. Members in the Choir
+ first_name 
+------------
+ John
+(1 row)
+
+4. Members per ministry
+ ministry | members 
+----------+---------
+ Youth    |       1
+ Choir    |       1
+ Ushering |       1
+(3 rows)
+
+5. Total giving per church
+    church     | total  
+---------------+--------
+ Hope Assembly |      0
+ Grace Chapel  | 230000
+(2 rows)
+
+6. Flexible fields: only visitors have a visitor section
+ first_name |                          visitor                          
+------------+-----------------------------------------------------------
+ Peter      | {"invited_by": "Mary Smith", "first_visit": "2026-10-04"}
+(1 row)
+
+7. Add a new field without changing the table
+UPDATE 1
+ first_name | baptised 
+------------+----------
+ Mary       | 
+ Peter      | 
+ John       | true
+(3 rows)
+
+8. Query plan using the GIN index
+SET
+                                QUERY PLAN                                 
+---------------------------------------------------------------------------
+ Bitmap Heap Scan on member_profile  (cost=17.19..21.20 rows=1 width=4)
+   Recheck Cond: (profile @> '{"status": "ACTIVE"}'::jsonb)
+   ->  Bitmap Index Scan on idx_profile  (cost=0.00..17.19 rows=1 width=0)
+         Index Cond: (profile @> '{"status": "ACTIVE"}'::jsonb)
+(4 rows)
+

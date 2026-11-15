@@ -1,0 +1,46 @@
+redis> FLUSHDB
+  OK
+redis> ZADD church:1:donors 150000 "John Doe" 80000 "Mary Smith" 45000 "Peter Brown"
+  3
+redis> ZINCRBY church:1:donors 100000 "Mary Smith"
+  180000
+redis> ZREVRANGE church:1:donors 0 2 WITHSCORES
+  Mary Smith
+  180000
+  John Doe
+  150000
+  Peter Brown
+  45000
+redis> ZREVRANK church:1:donors "Mary Smith"
+  0
+redis> INCR service:1001:checkins
+  1
+redis> INCR service:1001:checkins
+  2
+redis> INCR service:1001:checkins
+  3
+redis> GET service:1001:checkins
+  3
+redis> SADD service:1001:members 1 2 3 1
+  3
+redis> SCARD service:1001:members
+  3
+redis> SET otp:08000000001 482910 EX 300
+  OK
+redis> GET otp:08000000001
+  482910
+redis> TTL otp:08000000001
+  300
+redis> HSET member:1 name "John Doe" status ACTIVE branch "Main Branch"
+  3
+redis> HGETALL member:1
+  name
+  John Doe
+  status
+  ACTIVE
+  branch
+  Main Branch
+redis> SET payment:REF-001 processed NX EX 86400
+  OK
+redis> SET payment:REF-001 processed NX EX 86400
+  (nil)

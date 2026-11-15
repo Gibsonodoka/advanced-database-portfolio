@@ -1,0 +1,18 @@
+FLUSHDB
+ZADD church:1:donors 150000 "John Doe" 80000 "Mary Smith" 45000 "Peter Brown"
+ZINCRBY church:1:donors 100000 "Mary Smith"
+ZREVRANGE church:1:donors 0 2 WITHSCORES
+ZREVRANK church:1:donors "Mary Smith"
+INCR service:1001:checkins
+INCR service:1001:checkins
+INCR service:1001:checkins
+GET service:1001:checkins
+SADD service:1001:members 1 2 3 1
+SCARD service:1001:members
+SET otp:08000000001 482910 EX 300
+GET otp:08000000001
+TTL otp:08000000001
+HSET member:1 name "John Doe" status ACTIVE branch "Main Branch"
+HGETALL member:1
+SET payment:REF-001 processed NX EX 86400
+SET payment:REF-001 processed NX EX 86400
