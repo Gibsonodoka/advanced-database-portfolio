@@ -1,0 +1,84 @@
+SET
+SET
+Q1 Find members by last name in a branch
+                                              QUERY PLAN                                               
+-------------------------------------------------------------------------------------------------------
+ Seq Scan on member  (cost=0.00..839.00 rows=504 width=14) (actual time=0.008..1.654 rows=494 loops=1)
+   Filter: (((last_name)::text = 'Okafor'::text) AND (branch_id = 1))
+   Rows Removed by Filter: 29506
+ Planning Time: 0.261 ms
+ Execution Time: 1.700 ms
+(5 rows)
+
+Q2 Attendance of one member in the last 90 days
+                                                             QUERY PLAN                                                              
+-------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=7429.32..7429.33 rows=1 width=8) (actual time=4.599..4.601 rows=1 loops=1)
+   ->  Index Scan using attendance_pkey on attendance  (cost=0.42..7429.32 rows=1 width=0) (actual time=0.149..4.595 rows=1 loops=1)
+         Index Cond: (member_id = 1234)
+         Filter: (checked_in_at > (now() - '90 days'::interval))
+         Rows Removed by Filter: 10
+ Planning Time: 0.178 ms
+ Execution Time: 4.624 ms
+(7 rows)
+
+Q3 Monthly donations per fund in the last 12 months
+                                                             QUERY PLAN                                                             
+------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=8171.80..8996.60 rows=32992 width=48) (actual time=58.278..67.228 rows=39 loops=1)
+   Group Key: (date_trunc('month'::text, d.donated_at)), f.name
+   ->  Sort  (cost=8171.80..8254.28 rows=32992 width=22) (actual time=58.140..61.786 rows=33445 loops=1)
+         Sort Key: (date_trunc('month'::text, d.donated_at)), f.name
+         Sort Method: quicksort  Memory: 3014kB
+         ->  Hash Join  (cost=1.15..5695.78 rows=32992 width=22) (actual time=0.039..45.572 rows=33445 loops=1)
+               Hash Cond: (d.fund_id = f.fund_id)
+               ->  Seq Scan on donation d  (cost=0.00..5230.00 rows=98976 width=18) (actual time=0.007..35.343 rows=100025 loops=1)
+                     Filter: (donated_at > (now() - '1 year'::interval))
+                     Rows Removed by Filter: 99975
+               ->  Hash  (cost=1.11..1.11 rows=3 width=12) (actual time=0.018..0.020 rows=3 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     ->  Seq Scan on fund f  (cost=0.00..1.11 rows=3 width=12) (actual time=0.002..0.003 rows=3 loops=1)
+                           Filter: (church_id = 1)
+                           Rows Removed by Filter: 6
+ Planning Time: 0.668 ms
+ Execution Time: 67.282 ms
+(17 rows)
+
+Q4 Latest 20 donations of one member
+                                                    QUERY PLAN                                                     
+-------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=4230.10..4230.12 rows=7 width=24) (actual time=12.771..12.775 rows=4 loops=1)
+   ->  Sort  (cost=4230.10..4230.12 rows=7 width=24) (actual time=12.769..12.771 rows=4 loops=1)
+         Sort Key: donated_at DESC
+         Sort Method: quicksort  Memory: 25kB
+         ->  Seq Scan on donation  (cost=0.00..4230.00 rows=7 width=24) (actual time=0.126..12.749 rows=4 loops=1)
+               Filter: (member_id = 1234)
+               Rows Removed by Filter: 199996
+ Planning Time: 0.257 ms
+ Execution Time: 12.798 ms
+(9 rows)
+
+Q5 Top 10 donors this year
+                                                                       QUERY PLAN                                                                        
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=9396.25..9396.42 rows=10 width=50) (actual time=123.166..123.179 rows=10 loops=1)
+   ->  WindowAgg  (cost=9396.25..9873.60 rows=27277 width=50) (actual time=123.164..123.175 rows=10 loops=1)
+         ->  Sort  (cost=9396.25..9464.44 rows=27277 width=42) (actual time=123.153..123.158 rows=10 loops=1)
+               Sort Key: t.total DESC
+               Sort Method: quicksort  Memory: 2066kB
+               ->  Hash Join  (cost=6618.80..7386.56 rows=27277 width=42) (actual time=105.233..116.037 rows=28348 loops=1)
+                     Hash Cond: (m.member_id = t.member_id)
+                     ->  Seq Scan on member m  (cost=0.00..689.00 rows=30000 width=14) (actual time=0.007..2.254 rows=30000 loops=1)
+                     ->  Hash  (cost=6277.84..6277.84 rows=27277 width=36) (actual time=105.184..105.186 rows=28348 loops=1)
+                           Buckets: 32768  Batches: 1  Memory Usage: 1475kB
+                           ->  Subquery Scan on t  (cost=5664.10..6277.84 rows=27277 width=36) (actual time=85.087..100.946 rows=28348 loops=1)
+                                 ->  HashAggregate  (cost=5664.10..6005.07 rows=27277 width=36) (actual time=85.086..99.114 rows=28348 loops=1)
+                                       Group Key: donation.member_id
+                                       Batches: 5  Memory Usage: 8241kB  Disk Usage: 720kB
+                                       ->  Seq Scan on donation  (cost=0.00..5230.00 rows=86821 width=10) (actual time=0.008..44.516 rows=87370 loops=1)
+                                             Filter: (donated_at >= date_trunc('year'::text, now()))
+                                             Rows Removed by Filter: 112630
+ Planning Time: 0.322 ms
+ Execution Time: 123.474 ms
+(19 rows)
+

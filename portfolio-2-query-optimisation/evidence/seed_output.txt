@@ -1,0 +1,21 @@
+ setseed 
+---------
+ 
+(1 row)
+
+psql:seed.sql:3: NOTICE:  truncate cascades to table "branch"
+psql:seed.sql:3: NOTICE:  truncate cascades to table "ministry"
+psql:seed.sql:3: NOTICE:  truncate cascades to table "fund"
+psql:seed.sql:3: NOTICE:  truncate cascades to table "member"
+psql:seed.sql:3: NOTICE:  truncate cascades to table "member_ministry"
+psql:seed.sql:3: NOTICE:  truncate cascades to table "service"
+psql:seed.sql:3: NOTICE:  truncate cascades to table "donation"
+psql:seed.sql:3: NOTICE:  truncate cascades to table "attendance"
+    item    | count  
+------------+--------
+ services   |   1248
+ members    |  30000
+ donations  | 200000
+ attendance | 312632
+(4 rows)
+

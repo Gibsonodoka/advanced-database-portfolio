@@ -1,0 +1,84 @@
+SET
+SET
+Q1 Find members by last name in a branch
+                                                           QUERY PLAN                                                           
+--------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on member  (cost=9.45..426.82 rows=504 width=14) (actual time=0.088..0.523 rows=494 loops=1)
+   Recheck Cond: (((last_name)::text = 'Okafor'::text) AND (branch_id = 1))
+   Heap Blocks: exact=280
+   ->  Bitmap Index Scan on idx_member_lastname  (cost=0.00..9.33 rows=504 width=0) (actual time=0.059..0.059 rows=494 loops=1)
+         Index Cond: (((last_name)::text = 'Okafor'::text) AND (branch_id = 1))
+ Planning Time: 0.369 ms
+ Execution Time: 0.574 ms
+(7 rows)
+
+Q2 Attendance of one member in the last 90 days
+                                                                 QUERY PLAN                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=4.45..4.46 rows=1 width=8) (actual time=0.046..0.047 rows=1 loops=1)
+   ->  Index Only Scan using idx_attendance_member on attendance  (cost=0.43..4.45 rows=1 width=0) (actual time=0.041..0.042 rows=1 loops=1)
+         Index Cond: ((member_id = 1234) AND (checked_in_at > (now() - '90 days'::interval)))
+         Heap Fetches: 0
+ Planning Time: 0.169 ms
+ Execution Time: 0.068 ms
+(6 rows)
+
+Q3 Monthly donations per fund in the last 12 months
+                                                                             QUERY PLAN                                                                              
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=4209.80..5043.12 rows=33333 width=48) (actual time=14.370..18.554 rows=39 loops=1)
+   Group Key: (date_trunc('month'::text, d.donated_at)), f.name
+   ->  Sort  (cost=4209.80..4293.13 rows=33333 width=22) (actual time=14.295..15.462 rows=33445 loops=1)
+         Sort Key: (date_trunc('month'::text, d.donated_at)), f.name
+         Sort Method: quicksort  Memory: 3015kB
+         ->  Nested Loop  (cost=0.42..1705.71 rows=33333 width=22) (actual time=0.047..7.884 rows=33445 loops=1)
+               ->  Seq Scan on fund f  (cost=0.00..1.11 rows=3 width=12) (actual time=0.006..0.014 rows=3 loops=1)
+                     Filter: (church_id = 1)
+                     Rows Removed by Filter: 6
+               ->  Index Only Scan using idx_donation_fund_date on donation d  (cost=0.42..429.31 rows=11111 width=18) (actual time=0.026..1.367 rows=11148 loops=3)
+                     Index Cond: ((fund_id = f.fund_id) AND (donated_at > (now() - '1 year'::interval)))
+                     Heap Fetches: 0
+ Planning Time: 0.418 ms
+ Execution Time: 18.594 ms
+(14 rows)
+
+Q4 Latest 20 donations of one member
+                                                                 QUERY PLAN                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=31.32..31.34 rows=7 width=24) (actual time=0.067..0.068 rows=4 loops=1)
+   ->  Sort  (cost=31.32..31.34 rows=7 width=24) (actual time=0.066..0.066 rows=4 loops=1)
+         Sort Key: donated_at DESC
+         Sort Method: quicksort  Memory: 25kB
+         ->  Bitmap Heap Scan on donation  (cost=4.47..31.23 rows=7 width=24) (actual time=0.041..0.060 rows=4 loops=1)
+               Recheck Cond: (member_id = 1234)
+               Heap Blocks: exact=4
+               ->  Bitmap Index Scan on idx_donation_member_date  (cost=0.00..4.47 rows=7 width=0) (actual time=0.033..0.034 rows=4 loops=1)
+                     Index Cond: (member_id = 1234)
+ Planning Time: 0.101 ms
+ Execution Time: 0.080 ms
+(11 rows)
+
+Q5 Top 10 donors this year
+                                                                                       QUERY PLAN                                                                                       
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=7411.08..7411.26 rows=10 width=50) (actual time=78.765..78.776 rows=10 loops=1)
+   ->  WindowAgg  (cost=7411.08..7887.55 rows=27227 width=50) (actual time=78.763..78.773 rows=10 loops=1)
+         ->  Sort  (cost=7411.08..7479.15 rows=27227 width=42) (actual time=78.751..78.756 rows=10 loops=1)
+               Sort Key: t.total DESC
+               Sort Method: quicksort  Memory: 2066kB
+               ->  Hash Join  (cost=4637.68..5405.44 rows=27227 width=42) (actual time=61.307..71.645 rows=28348 loops=1)
+                     Hash Cond: (m.member_id = t.member_id)
+                     ->  Seq Scan on member m  (cost=0.00..689.00 rows=30000 width=14) (actual time=0.004..2.195 rows=30000 loops=1)
+                     ->  Hash  (cost=4297.34..4297.34 rows=27227 width=36) (actual time=61.262..61.264 rows=28348 loops=1)
+                           Buckets: 32768  Batches: 1  Memory Usage: 1475kB
+                           ->  Subquery Scan on t  (cost=3684.73..4297.34 rows=27227 width=36) (actual time=41.919..56.918 rows=28348 loops=1)
+                                 ->  HashAggregate  (cost=3684.73..4025.07 rows=27227 width=36) (actual time=41.917..55.044 rows=28348 loops=1)
+                                       Group Key: donation.member_id
+                                       Batches: 5  Memory Usage: 8241kB  Disk Usage: 720kB
+                                       ->  Index Only Scan using idx_donation_date on donation  (cost=0.42..3250.00 rows=86947 width=10) (actual time=0.037..10.756 rows=87370 loops=1)
+                                             Index Cond: (donated_at >= date_trunc('year'::text, now()))
+                                             Heap Fetches: 0
+ Planning Time: 0.175 ms
+ Execution Time: 79.088 ms
+(19 rows)
+
