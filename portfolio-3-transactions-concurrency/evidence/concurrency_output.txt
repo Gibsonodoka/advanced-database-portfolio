@@ -1,0 +1,26 @@
+1. Lost update (read then write)
+  B read balance 1000.00
+  A read balance 1000.00
+  A added 100 and committed
+  B added 200 and committed
+  final balance 1200.00 (expected 1300) -> LOST UPDATE
+2. Fix: atomic UPDATE balance = balance + x
+  A added 100 and committed
+  B added 200 and committed
+  final balance 1300.00 (expected 1300) -> CORRECT
+3. Fix: SELECT ... FOR UPDATE
+  A read balance 1000.00
+  A added 100 and committed
+  B read balance 1100.00
+  B added 200 and committed
+  final balance 1300.00 (expected 1300) -> CORRECT
+4. Non-repeatable read at READ COMMITTED
+  first read 1000.00, second read 1500.00 -> DIFFERENT
+5. Same test at REPEATABLE READ
+  first read 1000.00, second read 1000.00 -> SAME
+6. Deadlock: locks taken in opposite order
+  A transfer 1->2 ERROR: deadlock detected, rolled back
+  B transfer 2->1 committed
+7. Fix: always lock the lower fund_id first
+  B transfer 2->1 committed
+  A transfer 1->2 committed

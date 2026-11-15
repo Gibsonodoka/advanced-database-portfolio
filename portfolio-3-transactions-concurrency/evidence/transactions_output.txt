@@ -1,0 +1,86 @@
+SET
+1. COMMIT
+   balance    
+--------------
+ 552032400.00
+(1 row)
+
+BEGIN
+ zhim_record_donation 
+----------------------
+               200001
+(1 row)
+
+COMMIT
+   balance    
+--------------
+ 552033400.00
+(1 row)
+
+2. ROLLBACK
+BEGIN
+ zhim_record_donation 
+----------------------
+               200002
+(1 row)
+
+ROLLBACK
+   balance    
+--------------
+ 552033400.00
+(1 row)
+
+ count 
+-------
+     0
+(1 row)
+
+3. ATOMICITY: second step fails, first step is undone
+BEGIN
+ zhim_record_donation 
+----------------------
+               200003
+(1 row)
+
+psql:transactions.sql:20: ERROR:  new row for relation "fund" violates check constraint "fund_balance_check"
+DETAIL:  Failing row contains (2, 1, Offering, -443915799.00).
+ROLLBACK
+ count 
+-------
+     0
+(1 row)
+
+4. SAVEPOINT
+BEGIN
+ zhim_record_donation 
+----------------------
+               200004
+(1 row)
+
+SAVEPOINT
+psql:transactions.sql:28: ERROR:  new row for relation "donation" violates check constraint "donation_amount_check"
+DETAIL:  Failing row contains (200005, 1, 1, -50.00, CASH, null, 2026-11-15 22:18:27.046129).
+CONTEXT:  SQL statement "INSERT INTO cms.donation (member_id, fund_id, amount, method, reference)
+    VALUES (p_member, p_fund, p_amount, p_method, p_reference)
+    RETURNING donation_id"
+PL/pgSQL function zhim_record_donation(integer,integer,numeric,character varying,character varying) line 4 at SQL statement
+ROLLBACK
+ zhim_record_donation 
+----------------------
+               200006
+(1 row)
+
+COMMIT
+ amount 
+--------
+ 400.00
+ 300.00
+(2 rows)
+
+5. DUPLICATE REFERENCE REJECTED
+psql:transactions.sql:35: ERROR:  duplicate key value violates unique constraint "donation_reference_key"
+DETAIL:  Key (reference)=(TX-COMMIT) already exists.
+CONTEXT:  SQL statement "INSERT INTO cms.donation (member_id, fund_id, amount, method, reference)
+    VALUES (p_member, p_fund, p_amount, p_method, p_reference)
+    RETURNING donation_id"
+PL/pgSQL function zhim_record_donation(integer,integer,numeric,character varying,character varying) line 4 at SQL statement
